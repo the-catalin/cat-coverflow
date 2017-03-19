@@ -1,0 +1,555 @@
+<link rel="import" href="../polymer/polymer.html">
+
+
+<dom-module id="cat-coverflow">
+<style>
+    :host {
+      display: block;
+    }
+    #coverflow {
+      position: relative;
+      -moz-user-select: none;
+      -webkit-user-select: none;
+      -ms-user-select: none;
+      user-select: none;
+      overflow: visible;
+      outline: solid 0px;
+      height: 100%;
+    }
+
+    #cwrap {
+      /*position: absolute;*/
+      width: 100%;
+      height: 100%;
+      margin: 0 auto;
+      overflow: hidden;
+    }
+
+    #cul {
+      /*position: absolute;*/
+      width: 5000px;
+      margin: 0;
+      padding: 0;
+      transition-property: none;
+      transition-duration: var(--cat-coverflow-transition-duration);
+      transition-timing-function: var(--cat-coverflow-transition-function);
+    }
+
+    #cul li {
+      width: var(--cat-coverflow-image-spacing);
+      list-style: none;
+      float: left;
+      transition-property: none;
+      transition-duration: var(--cat-coverflow-transition-duration);
+      transition-timing-function: var(--cat-coverflow-transition-function);
+      position: relative;
+      pointer-events: none;
+    }
+
+    .image-container {
+      width: var(--cat-coverflow-image-width);
+      transition-property: none;
+      transition-duration: var(--cat-coverflow-transition-duration);
+      transition-timing-function: var(--cat-coverflow-transition-function);
+      pointer-events: auto;
+      position: relative;
+      display: block;
+      /*box-shadow: 30px 5px 15px -10px rgba(0, 0, 0, 0.15), -30px 5px 15px -10px rgba(0, 0, 0, 0.15);*/
+
+      cursor: pointer;
+      cursor: -webkit-grab;
+      cursor: grab;
+    }
+
+    cat-image {
+      width: var(--cat-coverflow-image-width);
+      height: var(--cat-coverflow-image-height) !important;
+        
+    }
+
+    .reflection {
+        margin-top: var(--cat-coverflow-reflection-offset);
+        display: block;
+        position: absolute;
+        top: 100%;
+        height: 100%;
+        width: 100%;
+        transform: scaleY(-1);
+        opacity: var(--cat-coverflow-reflection-opacity);
+    }
+    
+    .reflection::before {
+        content: '';
+        position: absolute;
+        width: 100%;
+        margin-left: 0;
+        height: 100%;
+        box-shadow: inset #fff 0 var(--cat-coverflow-reflection-size) var(--cat-coverflow-reflection-spread);
+        z-index: 9999;
+    }
+
+</style>
+
+<template>
+    <div id="coverflow">
+        <div id="cwrap">
+            <ul id="cul"></ul>            
+        </div>
+    </div>
+</template>
+
+<script>
+
+;(function(){
+
+'use strict';
+
+// vars for dragging functionality (_onTrack)
+var resetX, initThreshold, direction, max, min, vel, threshold = 140, varX, absX;
+
+function dashedLowercase(str) {
+    return str.replace(/([a-z])([A-Z])/g, '$1-$2').toLowerCase();
+}
+function forEach(array, callback, scope) {
+    for (var i = 0; i < array.length; i++) {
+        callback.call(scope, array[i], i);
+    }
+}
+
+return Polymer({
+
+    is: 'cat-coverflow',
+
+    properties: {
+
+        imageWidth:             { type: Number, value: 380},
+        imageHeight:            { type: Number, value: 310},
+        imageSpacing:           { type: Number, value: 100},
+        frontImageSpacing:      { type: Number, value: 140},
+        disableCentering:       { type: Boolean, value: false},
+        
+        disableReflection:      { type: Boolean, value: false},
+        reflectionSize:         { type: Number, value: 20},
+        reflectionSpread:       { type: Number, value: 50},
+        reflectionOpacity:      { type: Number, value: 50},
+        reflectionOffset:       { type: Number, value: 0},
+
+        imageRotation:          { type: Number, value: 60},
+        imagePerspective:       { type: Number, value: 600},
+        scaleRatio:             { type: Number, value: 66},
+
+
+        /**
+         * The initial centered image number. If it's 0, then the middle image will be selected.
+         */
+        startImage:             { type: Number, value: 0 },
+
+        transitionDurationCF:     { type: Number, value: 0.5},
+        transitionFunction:     { type: String, value: 'ease'},
+
+
+
+        /**
+         * Disable the photo effect that makes the image to slowly zoom
+         */
+        disableKenBurns:        { type: Boolean, value: false },
+        /**
+         * Ken Burns transition duration in seconds
+         */
+        transitionDuration:     { type: Number, value: 6 },
+        /**
+         * Ken Burns transition delay in seconds
+         */
+        transitionDelay:        { type: Number, value: 0 },
+        /**
+         * Zoom direction. Available options: in, out
+         */
+        kenBurnsZoomDirection:  { type: String, value: 'out' },
+        /**
+         * Point of origin for Ken Burns Effect. Due to reflection, only 'center' is available
+         */
+        zoomOrigin:             { type: String, value: 'center' },
+        /**
+         * Zoom percentage for Ken Burns
+         */
+        zoomScale:              { type: Number, value: 30 },
+
+
+
+
+        /**
+         * Available options: fade, slide, scale (or combined, space delimited), none
+         */
+        textTransitionType:     { type: String, value: 'slide' },
+        /**
+         * Available options: center, left, right, top, bottom. 'center' is unavailable for textTransitionType: slide
+         */
+        textTransitionDirection: { type: String, value: 'top' },
+        /**
+         * Easing function. Available options: ease, linear, ease-in, ease-out, ease-in-out
+         */
+        textTransitionFunction: { type: String, value: 'ease' },
+        /**
+         * Easing duration, in seconds
+         */
+        textTransitionDuration: { type: Number, value: 1 },
+        /**
+         * Transition delay, in seconds
+         */
+        textTransitionDelay:    { type: Number, value: 0 },
+        /**
+         * Delay (in seconds) between multiple text appearances
+         */
+        delayInBetween:    { type: Number, value: 0.3 },
+        /**
+         * The horizontal position of the text.
+         * Available options: random, center, left, right
+         */
+        horizontalTextPosition: { type: String, value: 'random' },
+        /**
+         * The vertical position of the text.
+         * Available options: random, center, top, bottom
+         */
+        verticalTextPosition:   { type: String, value: 'random' },
+        /**
+         * Text padding in pixels
+         */
+        textPadding:            { type: Number, value: 8 },
+        /**
+         * Space between cat-text elements
+         */
+        textSpacing:            { type: Number, value: 8},
+        /**
+         * Distance in percentage for slide effect.
+         * Available only for Transition type: slide
+         */
+        slideOffset:            { type: Number, value: 100 },
+
+
+
+
+        /**
+         * Show image shadow
+         */
+        useImageShadow:         { type: Boolean, value: false},
+        /**
+        * The width of the horizontal shadow
+        */       
+        horizontalShadowWidth:  { type: Number, value: 0},
+        /**
+         * The width of the vertical shadow
+         */
+        verticalShadowWidth:    { type: Number, value: 0},
+        /**
+         * The blur of the shadow
+         */
+        shadowBlur:             { type: Number, value: 10},
+        /**
+         * The spread of the shadow
+         */
+        shadowSpread:           { type: Number, value: 0},
+        /**
+         * The color of the shadow
+         */
+        shadowColor:            { type: String, value: 'rgba(0, 0, 0, 1)'},
+        /**
+         * Whether the shadow is inside or outside the image
+         */
+        shadowInset:            { type: Boolean, value: false},
+
+
+        /**
+         * Show image border
+         */
+        useImageBorder:         { type: Boolean, value: false},
+        /**
+         * Width of the border in pixels
+         */
+        imageBorderWidth:       { type: Number, value: 2},
+        /**
+         * Which sides to apply the border to. Available options: all, top, right, bottom, left
+         */
+        imageBorderSides:       { type: String, value: 'all'},
+        /**
+         * Radius of the border in pixels
+         */
+        imageBorderRadius:      { type: Number, value: 0},
+        /**
+         * Color of the border. RGB(A) or HEX
+         */
+        imageBorderColor:       { type: String, value: 'rgba(119, 119, 119, 1)'},
+        /**
+         * Whether the border is outside or inside the image
+         */
+        borderOutsideImage:     { type: Boolean, value: false}
+
+    },
+
+    CatTextProperties: [
+        'textTransitionType',
+        'textTransitionDirection',
+        'textTransitionFunction',
+        'textTransitionDuration',
+        'textTransitionDelay',
+        'slideOffset'
+    ],
+
+    CatImageProperties: [
+        'disableKenBurns',
+        'kenBurnsZoomDirection',
+        'transitionDuration',
+        'transitionDelay',
+        'zoomOrigin',
+        'zoomScale',
+        'textPadding',
+        'horizontalTextPosition',
+        'verticalTextPosition',
+        'delayInBetween',
+        'textSpacing',
+        'useImageShadow',
+        'horizontalShadowWidth',
+        'verticalShadowWidth',
+        'shadowBlur',
+        'shadowSpread',
+        'shadowColor',
+        'shadowInset',
+        'useImageBorder',
+        'imageBorderWidth',
+        'imageBorderSides',
+        'imageBorderRadius',
+        'imageBorderColor',
+        'borderOutsideImage'
+    ],
+
+    _applyBundledProperties: function(el) {
+        var i, len, key, dashedOriginal;
+        for (i = 0, len = this.CatImageProperties.length; i < len; i++) {
+            dashedOriginal = dashedLowercase(this.CatImageProperties[i]);
+            if (! el.hasAttribute(dashedOriginal) && this[this.CatImageProperties[i]] !== false) {
+                el.setAttribute(dashedOriginal, this[this.CatImageProperties[i]]);
+            }
+        }
+        for (i = 0, len = this.CatTextProperties.length; i < len; i++) {
+            dashedOriginal = dashedLowercase(this.CatTextProperties[i]);
+            if (! el.hasAttribute(dashedOriginal) && this[this.CatTextProperties[i]] !== false) {
+                el.setAttribute(dashedOriginal, this[this.CatTextProperties[i]]);
+            }
+        }
+        el.setAttribute('manual-mode', '');
+        // el.setAttribute('disable-ken-burns', '');
+        // el.setAttribute('show-effects-on-hover', '');
+    },
+
+    _appendImageChildren: function() {
+        //append cat-image child elements to #cul
+        this._lightDom = Polymer.dom(this).children;
+        var clone;
+        this.reflectionArray = [];
+
+        for (var i = 0; i < this._lightDom.length; i++) {
+            this._applyBundledProperties(this._lightDom[i]);
+            var li = document.createElement('li'),
+                imageContainer = document.createElement('div');
+            imageContainer.className = 'image-container';
+            li.appendChild(imageContainer);
+            imageContainer.appendChild(this._lightDom[i]);
+            
+            if (!this.disableReflection) {
+                var refl = document.createElement('div');
+                refl.className = 'reflection';
+
+                clone = this._lightDom[i].cloneNode(true);
+                var preloader = clone.querySelector('#preloader');
+                preloader.parentNode.removeChild(preloader);
+                var txt = clone.querySelector('#txt');
+                txt.parentNode.removeChild(txt);
+                this.reflectionArray.push(clone);
+                refl.appendChild(clone);
+
+                imageContainer.appendChild(refl);
+            }
+
+            Polymer.dom(this.$.cul).appendChild(li);
+        }
+    },
+
+    _initialStyleSetup: function() {
+
+        if (parseInt(getComputedStyle(this).height) === 0) {
+            this.style.height = '350px';
+        }
+
+        this.customStyle['--cat-coverflow-image-width'] = this.imageWidth + 'px';
+        this.customStyle['--cat-coverflow-image-height'] = this.imageHeight + 'px';
+        this.customStyle['--cat-coverflow-image-spacing'] = this.imageSpacing + 'px';
+        this.customStyle['--cat-coverflow-reflection-size'] = this.imageHeight * (100 - this.reflectionSize) / 100 + 'px';
+        this.customStyle['--cat-coverflow-reflection-spread'] = this.reflectionSpread + 'px';
+        this.customStyle['--cat-coverflow-reflection-opacity'] = this.reflectionOpacity / 100 + '';
+        this.customStyle['--cat-coverflow-reflection-offset'] = this.reflectionOffset + 'px';
+        this.customStyle['--cat-coverflow-transition-duration'] = this.transitionDurationCF + 's';
+        this.customStyle['--cat-coverflow-transition-function'] = this.transitionFunction;
+        this.updateStyles();
+        
+    },
+
+    _attachListeners: function() {
+        this.listen(this.$.coverflow, 'track', '_onTrack');
+        this.listen(this.$.coverflow, 'tap', '_onTap');
+    },
+
+    attached: function() {
+        this._appendImageChildren();
+        this._initialStyleSetup();
+        this._attachListeners();
+
+
+        this.lis = this.getElementsByTagName('li');
+
+        this.total = this.lis.length;
+        
+        if (!this.startImage) {
+            this.startingImage = Math.ceil(this.total / 2) - 1;
+        } else {
+            this.startingImage = this.startImage - 1;
+        }
+
+        this.currentImage = this.startingImage;
+
+        for (var i = 0; i < this.total; i++) {
+            this.lis[i].setAttribute('id', i);
+        }
+
+        this.changeImage(this.startingImage, true);
+        
+    },
+
+    _onTap: function(e) {
+        if (e.target && e.target.parentNode.nodeName === 'CAT-IMAGE') {
+            var clickedId = parseInt(e.target.parentNode.parentNode.parentNode.getAttribute('id'));
+
+            if (clickedId !== this.currentImage) {
+                this.changeImage(clickedId);
+            }
+        }
+    },
+
+
+    recenterCoverflow: function() {
+        this.$.cul.style.transform = 'translate3d(' +
+                (parseInt(getComputedStyle(this).width)/2-this.imageWidth/2-((this.currentImage)*this.imageSpacing)) +
+                'px, 0, 0)';
+    },
+
+    changeImage: function(imageId, firstRun) {
+        
+        if (imageId < 0) {
+            imageId = 0;
+        } else if (imageId >= this.total) {
+            imageId = this.total - 1;
+        }
+        
+        for (var i = 0; i < imageId; i++) {
+            this.lis[i].style.transform = 'translate3d(-'+this.frontImageSpacing+'px, 0, 0)';
+            this.lis[i].querySelector('.image-container').style.transform = 'perspective('+this.imagePerspective+'px) rotateY('+this.imageRotation+'deg) scale('+this.scaleRatio/100+')';
+        }
+
+        this.lis[imageId].style.transform = 'translate3d(0, 0, 0)';
+        this.lis[imageId].querySelector('.image-container').style.transform = 'rotateY(0deg)';
+
+        for (i = imageId + 1; i < this.total; i++) {
+            this.lis[i].style.transform = 'translate3d('+this.frontImageSpacing+'px, 0, 0)';
+            this.lis[i].querySelector('.image-container').style.transform = 'perspective('+this.imagePerspective+'px) rotateY(-'+this.imageRotation+'deg) scale('+this.scaleRatio/100+')';
+        }
+
+        this.currentImage = imageId;
+
+        if (!this.disableCentering) {
+            this.recenterCoverflow();
+        }
+
+        var self = this;
+
+        // enable CSS transitions only after the initial values are set
+        // otherwise we would see undesired transitions while loading
+        if (firstRun) {
+            setTimeout(function() {
+                self.$.cul.style.transitionProperty = 'transform';
+                for (var i = 0; i < self.total; i++) {
+                    self.lis[i].style.transitionProperty = 'transform';
+                    self.lis[i].querySelector('.image-container').style.transitionProperty = 'transform';
+                }
+            }, 0);
+        }
+
+        
+        var delay;
+        
+        if (firstRun) {
+            delay = 0;
+        } else {
+            delay = this.transitionDurationCF/4*1000;
+        }
+        setTimeout(function() {
+            var z = 100,
+                zindex = self.total * z;
+            
+            forEach(self.lis, function(el, i) {
+                zindex += (i<=imageId) ? z : -z;
+                el.style.zIndex = zindex;
+            });
+            
+        }, delay);
+
+        if (this.previousCatImage) {
+            this.previousCatImage.hideInfoText();
+            this.previousCatImage.hideKenBurns();
+            if (!this.disableReflection) {
+                this.reflectionArray[this.previousId].hideKenBurns();
+            }
+        }
+        var currentCatImage = this.lis[imageId].querySelector('cat-image');
+        currentCatImage.showInfoText();
+        if (!this.disableReflection) {
+            this.reflectionArray[imageId].showKenBurns();
+        }
+        currentCatImage.showKenBurns();
+        this.previousCatImage = currentCatImage;
+        this.previousId = imageId;
+
+    },
+
+    _onTrack: function(e) {
+        
+        if (e.detail.state === 'start') {
+            resetX = 0; initThreshold = threshold/3; direction = 0; max = 0; min = 0;
+        } else if (e.detail.state === 'track') {
+            varX = e.detail.dx - resetX;
+            absX = Math.abs(varX);
+
+            // if direction is not established, do it, then from this point on, check
+            // if somehow varX is increasing or decreasing with 20px for sudden direction changing
+            if (direction === 0) { if (varX > 0) direction = 1; else direction = -1; }
+
+            if(absX > initThreshold) {
+                resetX = e.detail.dx;
+                initThreshold = threshold;
+                this.changeImage(this.currentImage-direction);
+                direction = 0; max = 0; min = 0;
+            }
+            if (direction > 0) {
+                if (varX > max) max = varX;
+                else if (varX < max -20) {direction = max = min = 0; resetX = e.detail.dx; this.changeImage(this.currentImage + 1);}
+            } else  if (direction < 0) {
+                if (varX < min) min = varX;
+                else if (varX > min +20) {direction = max = min = 0; resetX = e.detail.dx; this.changeImage(this.currentImage-1);}
+            }
+        }
+    }
+
+});
+
+})();
+
+</script>
+
+</dom-module>

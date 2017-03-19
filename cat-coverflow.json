@@ -1,0 +1,419 @@
+[{
+    "tabName": "Settings",
+    "iconClass": "fa fa-gear",
+    "type": "controlsWithSubtabs",
+    
+    "subtabs": [{
+        "subtabName": "Global",
+        "controls": [{
+            "name": "Coverflow Width",
+            "id": "width",
+            "type": "numeric-input",
+            "min": 200,
+            "max": 1600,
+            "step": 1,
+            "css": "cat-coverflow"
+        }, {
+            "name": "Coverflow Height",
+            "id": "height",
+            "type": "numeric-input",
+            "min": 100,
+            "max": 600,
+            "step": 1,
+            "css": "cat-coverflow"
+        }, {
+            "name": "Image Width",
+            "id": "imageWidth",
+            "type": "numeric-input",
+            "min": 100,
+            "max": 500,
+            "step": 1
+        }, {
+            "name": "Image Height",
+            "id": "imageHeight",
+            "type": "numeric-input",
+            "min": 100,
+            "max": 500,
+            "step": 1
+        }, {
+            "name": "Image Spacing",
+            "id": "imageSpacing",
+            "type": "numeric-input",
+            "min": 20,
+            "max": 200,
+            "step": 1
+        }, {
+            "name": "Front Image Spacing",
+            "id": "frontImageSpacing",
+            "type": "numeric-input",
+            "min": 20,
+            "max": 300,
+            "step": 1
+        }, {
+            "name": "Transition Duration",
+            "id": "transitionDuration",
+            "type": "numeric-input",
+            "min": 0,
+            "max": 5,
+            "step": 0.1
+        }, {
+            "name": "Transition Function",
+            "id": "transitionFunction",
+            "type": "dropdown",
+            "options": ["ease", "linear", "ease-in", "ease-out", "ease-in-out"]
+        }, {
+            "name": "Start Image",
+            "id": "startImage",
+            "type": "numeric-input",
+            "min": 0,
+            "max": 8,
+            "step": 1,
+            "tip": "The image no. that will be selected when the coverflow loads. If set to 0, the middle one will be selected."
+        }, {
+            "name": "Disable Centering",
+            "id": "disableCentering",
+            "type": "toggle",
+            "tip": "By default, the Coverflow keeps the selected image in the center. You can disable this to have static images."
+        }, {
+            "name": "Image Rotation",
+            "id": "imageRotation",
+            "type": "numeric-input",
+            "min": 0,
+            "max": 180,
+            "step": 1
+        }, {
+            "name": "Image Perspective",
+            "id": "imagePerspective",
+            "type": "numeric-input",
+            "min": 0,
+            "max": 1000,
+            "step": 100
+        }, {
+            "name": "Scale Ratio",
+            "id": "scaleRatio",
+            "type": "numeric-input",
+            "min": 0,
+            "max": 100,
+            "step": 1
+        }]
+    }, {
+        "subtabName": "Reflection",
+        "controls": [{
+            "name": "Disable Reflection",
+            "id": "disableReflection",
+            "type": "toggle"
+        }, {
+            "name": "Reflection Size",
+            "id": "reflectionSize",
+            "type": "numeric-input",
+            "min": 0,
+            "max": 100,
+            "step": 1,
+            "tip": "Percentage"
+        }, {
+            "name": "Reflection Spread",
+            "id": "reflectionSpread",
+            "type": "numeric-input",
+            "min": 0,
+            "max": 100,
+            "step": 1
+        }, {
+            "name": "Reflection Opacity",
+            "id": "reflectionOpacity",
+            "type": "numeric-input",
+            "min": 0,
+            "max": 100,
+            "step": 1
+        }, {
+            "name": "Reflection Offset",
+            "id": "reflectionOffset",
+            "type": "numeric-input",
+            "min": 0,
+            "max": 30,
+            "step": 1
+        }]
+    }, {
+        "subtabName": "Text Animation",
+        "iconClass": "fa-square-o",
+        "controls": [{
+            "name": "Transition Type",
+            "id": "textTransitionType",
+            "type": "dropdown",
+            "options": ["fade", "scale", "slide"]
+        }, {
+            "name": "Transition Direction",
+            "id": "textTransitionDirection",
+            "type": "dropdown",
+            "options": ["center", "left", "right", "top", "bottom"]
+        }, {
+            "name": "Transition Function",
+            "id": "textTransitionFunction",
+            "type": "dropdown",
+            "options": ["ease", "linear", "ease-in", "ease-out", "ease-in-out"]
+        }, {
+            "name": "Transition Duration",
+            "id": "textTransitionDuration",
+            "type": "numeric-input",
+            "min": 0,
+            "max": 5,
+            "step": 0.1
+        }, {
+            "name": "Transition Delay",
+            "id": "textTransitionDelay",
+            "type": "numeric-input",
+            "min": 0,
+            "max": 2,
+            "step": 0.1
+        }, {
+            "name": "Delay In Between",
+            "id": "delayInBetween",
+            "type": "numeric-input",
+            "min": 0,
+            "max": 2,
+            "step": 0.1,
+            "tip": "Delay between multiple text appearances"
+        }, {
+            "name": "Slide Offset",
+            "id": "slideOffset",
+            "type": "numeric-input",
+            "min": 0,
+            "max": 200,
+            "step": 1,
+            "tip": "Percentage offset. Available only for Transiton Type: slide"
+        }]
+    }, {
+        "subtabName": "Text Style",
+        "controls": [{
+            "name": "Horizontal Text Pos",
+            "id": "horizontalTextPosition",
+            "type": "dropdown",
+            "options": ["random", "center", "left", "right"]
+        }, {
+            "name": "Vertical Text Pos",
+            "id": "verticalTextPosition",
+            "type": "dropdown",
+            "options": ["random", "center", "top", "bottom"]
+        }, {
+            "name": "Text Padding",
+            "id": "textPadding",
+            "type": "numeric-input",
+            "min": 0,
+            "max": 50,
+            "step": 1
+        }, {
+            "name": "Text Spacing",
+            "id": "textSpacing",
+            "type": "numeric-input",
+            "min": 0,
+            "max": 100,
+            "step": 1,
+            "tip": "Space between cat-text elements"
+        }, {
+            "name": "Background Color",
+            "id": "backgroundColor",
+            "type": "color",
+            "css": "cat-text"
+        }, {
+            "name": "Background Padding",
+            "id": "padding",
+            "type": "numeric-input",
+            "min": 0,
+            "max": 20,
+            "step": 1,
+            "css": "cat-text"
+        }, {
+            "name": "Border Radius",
+            "id": "borderRadius",
+            "type": "numeric-input",
+            "min": 0,
+            "max": 10,
+            "step": 1,
+            "css": "cat-text"
+        }, {
+            "name": "Border Style",
+            "id": "borderStyle",
+            "type": "dropdown",
+            "options": ["none", "solid", "dotted", "dashed"],
+            "css": "cat-text"
+        }, {
+            "name": "Border Width",
+            "id": "borderWidth",
+            "type": "numeric-input",
+            "min": 0,
+            "max": 10,
+            "step": 1,
+            "css": "cat-text"
+        }, {
+            "name": "Border Color",
+            "id": "borderColor",
+            "type": "color",
+            "css": "cat-text"
+        }, {
+            "name": "Font Size",
+            "id": "fontSize",
+            "type": "numeric-input",
+            "min": 8,
+            "max": 50,
+            "step": 1,
+            "css": "cat-text"
+        }, {
+            "name": "Color",
+            "id": "color",
+            "type": "color",
+            "css": "cat-text"
+        }, {
+            "name": "Font Family",
+            "id": "fontFamily",
+            "type": "dropdown",
+            "options": ["Open Sans", "Lato", "Raleway", "Roboto", "Oswald", "Roboto Condensed", "PT Sans", "Baloo", "Open Sans Condensed", "Indie Flower", "Abel"],
+            "tip": "Note that some fonts go only with specific font weights",
+            "css": "cat-text"
+        }, {
+            "name": "Font Weight",
+            "id": "fontWeight",
+            "type": "numeric-input",
+            "min": 100,
+            "max": 900,
+            "step": 100,
+            "css": "cat-text"
+        }]
+    }, {
+        "subtabName": "Ken Burns Effect",
+        "iconClass": "fa-globe",
+        "controls": [{
+            "name": "Disable Ken Burns",
+            "id": "disableKenBurns",
+            "type": "toggle",
+            "tip": "Disable the photo effect that makes the image to slowly zoom"
+        }, {
+            "name": "Transition Duration",
+            "id": "transitionDuration",
+            "type": "numeric-input",
+            "min": 0,
+            "max": 20,
+            "step": 0.1,
+            "tip": "Ken Bunrs transition duration in seconds"
+        }, {
+            "name": "Transition Delay",
+            "id": "transitionDelay",
+            "type": "numeric-input",
+            "min": 0,
+            "max": 10,
+            "step": 0.1,
+            "tip": "Ken Bunrs transition delay in seconds"
+        }, {
+            "name": "Ken Burns Zoom",
+            "id": "kenBurnsZoomDirection",
+            "type": "dropdown",
+            "options": ["in", "out"],
+            "tip": "Zoom direction"
+        }, {
+            "name": "Zoom Scale",
+            "id": "zoomScale",
+            "type": "numeric-input",
+            "min": 0,
+            "max": 100,
+            "step": 1,
+            "tip": "Zoom percentage for Ken Burns"
+        }]
+    }, {
+        "subtabName": "Image Border",
+        "iconClass": "fa-globe",
+        "controls": [{
+            "name": "Use Border",
+            "id": "useImageBorder",
+            "type": "toggle"
+        }, {
+            "name": "Border Width",
+            "id": "imageBorderWidth",
+            "type": "numeric-input",
+            "min": 0,
+            "max": 20,
+            "step": 1
+        }, {
+            "name": "Border Sides",
+            "id": "imageBorderSides",
+            "type": "dropdown",
+            "options": ["all", "top", "right", "bottom", "left"],
+            "tip": "Which sides to apply the border to"
+        }, {
+            "name": "Border Radius",
+            "id": "imageBorderRadius",
+            "type": "dropdown",
+            "type": "numeric-input",
+            "min": 0,
+            "max": 20,
+            "step": 1
+        }, {
+            "name": "Border Color",
+            "id": "imageBorderColor",
+            "type": "color"
+        }, {
+            "name": "Border Outside Image",
+            "id": "borderOutsideImage",
+            "type": "toggle",
+            "tip": "Check this to have the border outside the image, not inside"
+        }]
+    }, {
+        "subtabName": "Image Shadow",
+        "iconClass": "fa-globe",
+        "controls": [{
+            "name": "Use Shadow",
+            "id": "useImageShadow",
+            "type": "toggle"
+        }, {
+            "name": "Horizontal Shadow",
+            "id": "horizontalShadowWidth",
+            "type": "numeric-input",
+            "min": -20,
+            "max": 20,
+            "step": 1
+        }, {
+            "name": "Vertical Shadow",
+            "id": "verticalShadowWidth",
+            "type": "numeric-input",
+            "min": -20,
+            "max": 20,
+            "step": 1
+        }, {
+            "name": "Shadow Blur",
+            "id": "shadowBlur",
+            "type": "numeric-input",
+            "min": 0,
+            "max": 20,
+            "step": 1
+        }, {
+            "name": "Shadow Spread",
+            "id": "shadowSpread",
+            "type": "numeric-input",
+            "min": -20,
+            "max": 20,
+            "step": 1
+        }, {
+            "name": "Shadow Color",
+            "id": "shadowColor",
+            "type": "color"
+        }, {
+            "name": "Shadow Inside Image",
+            "id": "shadowInset",
+            "type": "toggle",
+            "tip": "Whether the shadow is inside or outside the image"
+        }]
+    }]
+
+    
+}, {
+    "tabName": "Publish",
+    "iconClass": "fa fa-paper-plane",
+    "type": "genericContent",
+    "content": "content"
+}, {
+    "limits" : [{
+        "master": "disableReflection",
+        "slave": ["reflectionSize", "reflectionSpread", "reflectionOffset", "reflectionOpacity", "scaleRatio"]
+    }, {
+        "master": "textTransitionType",
+        "slave": ["slideOffset"],
+        "disabled": ["fade", "scale"]
+    }]
+}]
