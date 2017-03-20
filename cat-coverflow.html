@@ -76,6 +76,7 @@
         width: 100%;
         transform: scaleY(-1);
         opacity: var(--cat-coverflow-reflection-opacity);
+        overflow: hidden;
     }
     
     .reflection::before {
@@ -144,7 +145,7 @@ return Polymer({
          */
         startImage:             { type: Number, value: 0 },
 
-        transitionDurationCF:     { type: Number, value: 0.5},
+        transitionDuration:     { type: Number, value: 0.5},
         transitionFunction:     { type: String, value: 'ease'},
 
 
@@ -156,11 +157,11 @@ return Polymer({
         /**
          * Ken Burns transition duration in seconds
          */
-        transitionDuration:     { type: Number, value: 6 },
+        kenBurnsTransitionDuration:     { type: Number, value: 6 },
         /**
          * Ken Burns transition delay in seconds
          */
-        transitionDelay:        { type: Number, value: 0 },
+        kenBurnsTransitionDelay:        { type: Number, value: 0 },
         /**
          * Zoom direction. Available options: in, out
          */
@@ -182,9 +183,9 @@ return Polymer({
          */
         textTransitionType:     { type: String, value: 'slide' },
         /**
-         * Available options: center, left, right, top, bottom. 'center' is unavailable for textTransitionType: slide
+         * Available options: center, left, right, top, bottom, random. 'center' is unavailable for textTransitionType: slide
          */
-        textTransitionDirection: { type: String, value: 'top' },
+        textTransitionDirection: { type: String, value: 'random' },
         /**
          * Easing function. Available options: ease, linear, ease-in, ease-out, ease-in-out
          */
@@ -210,7 +211,7 @@ return Polymer({
          * The vertical position of the text.
          * Available options: random, center, top, bottom
          */
-        verticalTextPosition:   { type: String, value: 'random' },
+        verticalTextPosition:   { type: String, value: 'bottom' },
         /**
          * Text padding in pixels
          */
@@ -229,13 +230,13 @@ return Polymer({
 
 
         /**
-         * Show image shadow
+         * Hide image shadow
          */
-        useImageShadow:         { type: Boolean, value: false},
+        disableImageShadow:         { type: Boolean, value: false},
         /**
         * The width of the horizontal shadow
         */       
-        horizontalShadowWidth:  { type: Number, value: 0},
+        horizontalShadowWidth:  { type: Number, value: 40},
         /**
          * The width of the vertical shadow
          */
@@ -243,19 +244,23 @@ return Polymer({
         /**
          * The blur of the shadow
          */
-        shadowBlur:             { type: Number, value: 10},
+        shadowBlur:             { type: Number, value: 15},
         /**
          * The spread of the shadow
          */
-        shadowSpread:           { type: Number, value: 0},
+        shadowSpread:           { type: Number, value: -15},
         /**
          * The color of the shadow
          */
-        shadowColor:            { type: String, value: 'rgba(0, 0, 0, 1)'},
+        shadowColor:            { type: String, value: 'rgba(0, 0, 0, 0.15)'},
         /**
          * Whether the shadow is inside or outside the image
          */
         shadowInset:            { type: Boolean, value: false},
+        /**
+         * Double the shadow both vertically and horizontally
+         */
+        useDoubleShadow:       { type: Boolean, value: true},
 
 
         /**
@@ -285,20 +290,17 @@ return Polymer({
 
     },
 
-    CatTextProperties: [
+    CatImageProperties: [
         'textTransitionType',
         'textTransitionDirection',
         'textTransitionFunction',
         'textTransitionDuration',
         'textTransitionDelay',
-        'slideOffset'
-    ],
-
-    CatImageProperties: [
+        'slideOffset',
         'disableKenBurns',
         'kenBurnsZoomDirection',
-        'transitionDuration',
-        'transitionDelay',
+        'transitionDuration:kenBurnsTransitionDuration',
+        'transitionDelay:kenBurnsTransitionDelay',
         'zoomOrigin',
         'zoomScale',
         'textPadding',
@@ -306,13 +308,14 @@ return Polymer({
         'verticalTextPosition',
         'delayInBetween',
         'textSpacing',
-        'useImageShadow',
+        'useImageShadow!disableImageShadow',
         'horizontalShadowWidth',
         'verticalShadowWidth',
         'shadowBlur',
         'shadowSpread',
         'shadowColor',
         'shadowInset',
+        'useDoubleShadow',
         'useImageBorder',
         'imageBorderWidth',
         'imageBorderSides',
@@ -321,23 +324,44 @@ return Polymer({
         'borderOutsideImage'
     ],
 
-    _applyBundledProperties: function(el) {
-        var i, len, key, dashedOriginal;
-        for (i = 0, len = this.CatImageProperties.length; i < len; i++) {
-            dashedOriginal = dashedLowercase(this.CatImageProperties[i]);
-            if (! el.hasAttribute(dashedOriginal) && this[this.CatImageProperties[i]] !== false) {
-                el.setAttribute(dashedOriginal, this[this.CatImageProperties[i]]);
+    // apply the bundled properties
+    // unless there are individual properties defined for a specific element
+    _getOriginal:function(str) {
+        if (str.indexOf(':') !== -1) {
+            return str.slice(0, str.indexOf(':'));
+        } else if (str.indexOf('!') !== -1) {
+            return str.slice(0, str.indexOf('!'));
+        } else {
+            return str;
+        }
+    },
+    _getSpecific: function(str) {
+        if (str.indexOf(':') !== -1) {
+            return str.slice(str.indexOf(':') + 1, str.length);
+        } else if (str.indexOf('!') !== -1) {
+            return str.slice(str.indexOf('!') + 1, str.length);
+        } else {
+            return str;
+        }
+    },
+    _isInversed: function(str) {
+        if (str.indexOf('!') !== -1) {
+            return true;
+        } else {
+            return false;
+        }
+    },
+    _applyBundledProperties: function(el, PropertiesArray) {
+        var i, len, original, specific, inversed, dashedOriginal;
+        for (i = 0, len = PropertiesArray.length; i < len; i++) {
+            original = this._getOriginal(PropertiesArray[i]);
+            specific = this._getSpecific(PropertiesArray[i]);
+            inversed = this._isInversed(PropertiesArray[i]);
+            dashedOriginal = dashedLowercase(original);
+            if (! el.hasAttribute(dashedOriginal) && this[specific] !== inversed) {
+                el.setAttribute(dashedOriginal, (inversed ? true: this[specific]));
             }
         }
-        for (i = 0, len = this.CatTextProperties.length; i < len; i++) {
-            dashedOriginal = dashedLowercase(this.CatTextProperties[i]);
-            if (! el.hasAttribute(dashedOriginal) && this[this.CatTextProperties[i]] !== false) {
-                el.setAttribute(dashedOriginal, this[this.CatTextProperties[i]]);
-            }
-        }
-        el.setAttribute('manual-mode', '');
-        // el.setAttribute('disable-ken-burns', '');
-        // el.setAttribute('show-effects-on-hover', '');
     },
 
     _appendImageChildren: function() {
@@ -347,7 +371,9 @@ return Polymer({
         this.reflectionArray = [];
 
         for (var i = 0; i < this._lightDom.length; i++) {
-            this._applyBundledProperties(this._lightDom[i]);
+            this._applyBundledProperties(this._lightDom[i], this.CatImageProperties);
+            this._lightDom[i].setAttribute('manual-mode', '');
+
             var li = document.createElement('li'),
                 imageContainer = document.createElement('div');
             imageContainer.className = 'image-container';
@@ -386,7 +412,7 @@ return Polymer({
         this.customStyle['--cat-coverflow-reflection-spread'] = this.reflectionSpread + 'px';
         this.customStyle['--cat-coverflow-reflection-opacity'] = this.reflectionOpacity / 100 + '';
         this.customStyle['--cat-coverflow-reflection-offset'] = this.reflectionOffset + 'px';
-        this.customStyle['--cat-coverflow-transition-duration'] = this.transitionDurationCF + 's';
+        this.customStyle['--cat-coverflow-transition-duration'] = this.transitionDuration + 's';
         this.customStyle['--cat-coverflow-transition-function'] = this.transitionFunction;
         this.updateStyles();
         
@@ -487,7 +513,7 @@ return Polymer({
         if (firstRun) {
             delay = 0;
         } else {
-            delay = this.transitionDurationCF/4*1000;
+            delay = this.transitionDuration/4*1000;
         }
         setTimeout(function() {
             var z = 100,
