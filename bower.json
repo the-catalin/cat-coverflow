@@ -1,6 +1,6 @@
 {
   "name": "cat-coverflow",
-  "version": "0.7.0",
+  "version": "0.7.1",
   "description": "Displays a coverflow with many different properties",
   "authors": [
     "Catalin Ungureanu <catalinungureanu@gmail.com>"
