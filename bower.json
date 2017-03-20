@@ -25,7 +25,7 @@
   ],
   "dependencies": {
     "polymer": "^1.7.0",
-    "cat-image": "the-catalin/cat-image#^0.8.6",
+    "cat-image": "the-catalin/cat-image#^0.8.6"
   },
   "devDependencies": {
     "iron-component-page": "PolymerElements/iron-component-page#^1.1.7",
